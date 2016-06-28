@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "LED Control on HCS12 Microcontroller"
+title:      "Operations on HCS12 Microcontroller"
 subtitle:   " \"我的CMPEN472上课有感\""
 date:       2016-02-28 12:00:00
 author:     "Siwei"
