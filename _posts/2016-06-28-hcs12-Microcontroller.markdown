@@ -2,7 +2,7 @@
 layout:     post
 title:      "Operations on HCS12 Microcontroller"
 subtitle:   " \"我的CMPEN472上课有感\""
-date:       2016-02-28 12:00:00
+date:       2016-06-28 12:00:00
 author:     "Siwei"
 header-img: "img/post-bg-2015.jpg"
 tags:
