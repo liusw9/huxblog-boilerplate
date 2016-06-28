@@ -1,79 +1,60 @@
 ---
 layout:     post
-title:      "Welcome to Hux Blog"
-subtitle:   " \"Hello World, Hello Blog\""
-date:       2015-01-29 12:00:00
-author:     "Hux"
+title:      "Operations on HCS12 Microcontroller"
+subtitle:   " \"我的CMPEN472上课有感\""
+date:       2016-02-28 12:00:00
+author:     "Siwei"
 header-img: "img/post-bg-2015.jpg"
 tags:
-    - 生活
+    - Microcontroller
 ---
 
 > “Yeah It's on. ”
 
 
 ## 前言
+上了3年大学，终于赶上了一个有关我专业的课 ---- Microcontroller
 
-Hux 的 Blog 就这么开通了。
+就是这样一块简单的单片机，没想到居然折磨了我整整一个学期
 
-[跳过废话，直接看技术实现 ](#build)
+[可以跳过感想](#build)
 
+这节课的教授是一个韩国人，为人很好，就是感觉听不太懂我们的问题，每次去他的office hour问问题，我说了一大串，然后他来一句what's your problem
 
-
-2015 年，Hux 总算有个地方可以好好写点东西了。
-
-
-作为一个程序员， Blog 这种轮子要是挂在大众博客程序上就太没意思了。一是觉得大部分 Blog 服务都太丑，二是觉得不能随便定制不好玩。之前因为太懒没有折腾，结果就一直连个写 Blog 的地儿都没有。
-
-在玩了一段时间知乎之后，答题的快感又激起了我开博客的冲动。之前的[个人网站](http://huangxuan.me/portfolio)是作品集形式的（现在集成进来了），并不适合用来写博文，一不做二不休，花一天搞一个吧！
-
+当然了，也存在我问的不清楚的地方，但是美国人问问题你也问他what's your problem就不太合适了吧
 
 <p id = "build"></p>
 ---
 
 ## 正文
 
-接下来说说搭建这个博客的技术细节。  
+言归正传
 
-正好之前就有关注过 [GitHub Pages](https://pages.github.com/) + [Jekyll](http://jekyllrb.com/) 快速 Building Blog 的技术方案，非常轻松时尚。
+这节课的码都是用汇编语言（assembly language）写的，很好玩。 最开始只是很简单的parallel port I/O, subroutine, looping and timing，程序也很短，按照要求让单片机上的 LED 亮起或者隔几秒亮一下。
 
-其优点非常明显：
+一个月以后，基本的事情都掌握了，开始写复杂的了。
 
-* **Markdown** 带来的优雅写作体验
-* 非常熟悉的 Git workflow ，**Git Commit 即 Blog Post**
-* 利用 GitHub Pages 的域名和免费无限空间，不用自己折腾主机
-	* 如果需要自定义域名，也只需要简单改改 DNS 加个 CNAME 就好了
-* Jekyll 的自定制非常容易，基本就是个模版引擎
+第六个作业，按照输入的数字，转化为百分比，使得LED按照此亮度亮起。由于机器只知道9是9，但是不知道95是95，所以要依次记录下每次输入的数字，判断到底输入了几个数字。 每输入一个数字，必须要把它存起来，因为这个单片机没有那么高端
 
+如果是2位数，那么就是a * 10 + b得到最后的亮度，如果超过了100，还要提示这个数字超过了范围。 这个作业也不难。
 
-本来觉得最大的缺点可能是 GitHub 在国内访问起来太慢，所以第二天一起床就到 GitCafe(Chinese GitHub Copy) 迁移了一个[镜像](http://huxpro.gitcafe.io)出来，结果还是巨慢。
+第七个作业，写一个只能做3位数以内的加减乘除的计算器。 首先，我们要判断第一个数字的位数，然后还要判读符号，最后是第二个。 我的方法（复杂）是：分布建立3个初始值为0的变量储存前三个（f1,f2,f3)、后三个(s1,s2,s2)输入的数字，以及一个存储单位的变量--var。
 
-哥哥可是个前端好嘛！ 果断开 Chrome DevTool 查了下网络请求，原来是 **pending 在了 Google Fonts** 上，页面渲染一直被阻塞到请求超时为止，难怪这么慢。  
-忍痛割爱，只好把 Web Fonts 去了（反正超时看到的也只能是 fallback ），果然一下就正常了，而且 GitHub 和 GitCafe 对比并没有感受到明显的速度差异，虽然 github 的 ping 值明显要高一些，达到了 300ms，于是用 DNSPOD 优化了一下速度。
+把他们分别存起来，先在variable/data section建立一段可以储存20Byte的空间buff  DS.B  20。在code section，把储存器buff的地址存在X上：ldx   #buff，之后不断地staa  1,x+，这样没输入一个字符，就会存在x上，然后x++
 
+写一个subroutine来计算每次输入的数的值，100*f3+10*f2+f1.由于寄存器A,B都是8位，所以存的数最大为255，所以用X,Y更安全。经过STX NUM1,STY NUM2以后，就可以进行计算了。
+
+**真正的难点在于加减乘除，**因为存在进位的问题，如2+9，2-9就会产生carry/borrow bit，寄存器A对应前8位，B对应后8位，由AB组成的D就是16位，LDD NUM1后，对第一个数的A加1，然后再加NUM2，最后减掉#256就可以避免由carry/borrow产生的问题。
+
+乘除法就简单的很多，利用EMUL以及IDIV就可以完成。
+
+最后将结果存在RESULT中，print出来就可以了。
 
 
 ---
 
-配置的过程中也没遇到什么坑，基本就是 Git 的流程，相当顺手
-
-大的 Jekyll 主题上直接 fork 了 Clean Blog（这个主题也相当有名，就不多赘述了。唯一的缺点大概就是没有标签支持，于是我给它补上了。）
-
-本地调试环境需要 `gem install jekyll`，结果 rubygem 的源居然被墙了……后来手动改成了我大淘宝的镜像源才成功
-
-Theme 的 CSS 是基于 Bootstrap 定制的，看得不爽的地方直接在 Less 里改就好了（平时更习惯 SCSS 些），**不过其实我一直觉得 Bootstrap 在移动端的体验做得相当一般，比我在淘宝参与的团队 CSS 框架差多了……**所以为了体验，也补了不少 CSS 进去
-
-最后就进入了耗时反而最长的**做图、写字**阶段，也算是进入了**写博客**的正轨，因为是类似 Hack Day 的方式去搭这个站的，所以折腾折腾着大半夜就过去了。
-
-第二天考虑中文字体的渲染，fork 了 [Type is Beautiful](http://www.typeisbeautiful.com/) 的 `font` CSS，调整了字号，适配了 Win 的渣渲染，中英文混排效果好多了。
-
-
 ## 后记
 
-回顾这个博客的诞生，纯粹是出于个人兴趣。在知乎相关问题上回答并获得一定的 star 后，我决定把这个博客主题当作一个小小的开源项目来维护。
+暂时先写这么多，都是我临时想起来的，所以肯定有问题，而且不是很详细，
 
-在经历 v1.0 - v1.5 的蜕变后，这个博客主题愈发完整，不但增加了诸多 UI 层的优化（opinionated）；在代码层面，更加丰富的配置项也使得这个主题拥有了更好的灵活性与可拓展性。而作为一个开源项目，我也积极的为其完善文档与解决 issue。
-
-如果你恰好逛到了这里，希望你也能喜欢这个博客主题。
-
-—— Hux 后记于 2015.10
+—— Siwei 后记于 2016.06
